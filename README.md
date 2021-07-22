@@ -1,6 +1,10 @@
 # machine-learnning
 machine-learnning
 
+AI-ART
+
+https://aiartists.org/ai-generated-art-tools
+
 https://www.youtube.com/watch?v=FD7bDsYQO08
 
 https://www.youtube.com/watch?v=9YixRpBZwRA
