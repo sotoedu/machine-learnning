@@ -1,6 +1,9 @@
 # machine-learnning
 machine-learnning
 
+dog-cat
+https://codetorial.net/tensorflow/classifying_the_cats_and_dogs.html
+
 AI-ART
 
 https://aiartists.org/ai-generated-art-tools
