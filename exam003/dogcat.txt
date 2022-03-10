@@ -1,227 +1,185 @@
 Colab에서 딥러닝 실행하기
 
-step1 다운로드하기
-cats_and_dogs_filtered 데이터셋은 25,000개의 이미지를 포함하는 원본 Dogs Vs. Cats 데이터셋에서 약 3,000개의 이미지를 추출한 간소화된 버전의 데이터셋입니다.
+CNN 모델을 이용한 고양이와 강아지 분류
+
+Step1. 프로젝트 경로 생성
+!mkdir workspace
+!cd workspace
+!pwd
 
 
-!wget --no-check-certificate \
-https://storage.googleapis.com/mledu-datasets/cats_and_dogs_filtered.zip \
--O /tmp/cats_and_dogs_filtered.zip
+Step2. 이미지 다운로드 및 압축 풀기
+!wget --no-check-certificate https://storage.googleapis.com/mledu-datasets/cats_and_dogs_filtered.zip -O workspace/imageset.zip
 
 
-step2 압축풀기
-extractall() 메서드를 이용해서 tmp 폴더에 압축을 풉니다.
-
-
+Step3.압축 파일 풀기
 import os
 import zipfile
 
-local_zip = '/tmp/cats_and_dogs_filtered.zip'
+!ls workspace
+baseDir = 'workspace/cats_and_dogs_filtered'
+localZip = 'workspace/imageset.zip'
 
-zip_ref = zipfile.ZipFile(local_zip, 'r')
+zipRef = zipfile.ZipFile(localZip, 'r')
+zipRef.extractall('workspace/')
+zipRef.close()
 
-zip_ref.extractall('/tmp')
-zip_ref.close()
+trainDir = os.path.join(baseDir, 'train')
+validDir = os.path.join(baseDir, 'validation')
+
+# 훈련용 고양이/개 이미지 경로
+trainCatDir = os.path.join(trainDir, 'cats')
+trainDogDir = os.path.join(trainDir, 'dogs')
+
+# 테스트용 고양이/개 이미지 경로
+validCatDir = os.path.join(validDir, 'cats')
+validDogDir = os.path.join(validDir, 'dogs')
+
+print('훈련용 고양이 이미지 수: ', len(os.listdir(trainCatDir)))
+print('훈련용 강아지 이미지 수: ', len(os.listdir(trainDogDir)))
+print('검증용 고양이 이미지 수: ', len(os.listdir(validCatDir)))
+print('검증용 강아지 이미지 수: ', len(os.listdir(validDogDir)))
 
 
-
-
-step3 경로 지정하기
-기본 경로와 훈련에 사용되는 고양이/개 이미지의 경로를 각각 지정해줍니다.
-
-
-# 기본 경로
-base_dir = '/tmp/cats_and_dogs_filtered'
-
-train_dir = os.path.join(base_dir, 'train')
-validation_dir = os.path.join(base_dir, 'validation')
-
-# 훈련에 사용되는 고양이/개 이미지 경로
-train_cats_dir = os.path.join(train_dir, 'cats')
-train_dogs_dir = os.path.join(train_dir, 'dogs')
-print(train_cats_dir)
-print(train_dogs_dir)
-
-# 테스트에 사용되는 고양이/개 이미지 경로
-validation_cats_dir = os.path.join(validation_dir, 'cats')
-validation_dogs_dir = os.path.join(validation_dir, 'dogs')
-print(validation_cats_dir)
-print(validation_dogs_dir)
-
-step4 파일 이름과 개수
-os.listdir() 메서드는 경로 내에 있는 파일의 이름을 리스트의 형태로 반환합니다.
-
-train_cat_fnames = os.listdir( train_cats_dir )
-train_dog_fnames = os.listdir( train_dogs_dir )
-
-print(train_cat_fnames[:5])
-print(train_dog_fnames[:5])
-
-print('Total training cat images :', len(os.listdir(train_cats_dir)))
-print('Total training dog images :', len(os.listdir(train_dogs_dir)))
-
-print('Total validation cat images :', len(os.listdir(validation_cats_dir)))
-print('Total validation dog images :', len(os.listdir(validation_dogs_dir)))
-
-step5 이미지 확인하기
-Matplotlib 라이브러리를 이용해서 이미지를 출력
-
-%matplotlib inline
-
-import matplotlib.image as mpimg
+Step4. 훈련 고양이 이미지 확인하기
 import matplotlib.pyplot as plt
+from matplotlib.image import imread
 
-nrows, ncols = 4, 4
-pic_index = 0
+# 훈련용 고양이 이미지 파일이름 
+trainCatFileNames = os.listdir( trainCatDir )
 
 fig = plt.gcf()
-fig.set_size_inches(ncols*3, nrows*3)
+fig.set_size_inches(4*3, 4*3)
 
-pic_index+=8
+# print(trainCatFileNames[:5])
 
-next_cat_pix = [os.path.join(train_cats_dir, fname)
-                for fname in train_cat_fnames[ pic_index-8:pic_index]]
-
-next_dog_pix = [os.path.join(train_dogs_dir, fname)
-                for fname in train_dog_fnames[ pic_index-8:pic_index]]
-
-for i, img_path in enumerate(next_cat_pix+next_dog_pix):
-  sp = plt.subplot(nrows, ncols, i + 1)
+i = 0
+for filename in trainCatFileNames[:16]:
+  sp = plt.subplot(4, 4, i + 1)
   sp.axis('Off')
+  image = imread(trainCatDir +'/'+ filename)
+  plt.imshow(image)
+  i = i + 1
 
-  img = mpimg.imread(img_path)
-  plt.imshow(img)
-
+# 이미지 확인
 plt.show()
 
 
-step6 모델 구성하기
-TensorFlow를 이용해서 합성곱 신경망의 모델을 구성
+Step5. 훈련 강아지 이미지 확인하기
+fig = plt.gcf()
+fig.set_size_inches(4*3, 4*3)
 
-import tensorflow as tf
+# 훈련용 강아지 이미지 파일이름 
+trainDogFileNames = os.listdir( trainDogDir )
 
-model = tf.keras.models.Sequential([
-  tf.keras.layers.Conv2D(16, (3,3), activation='relu', input_shape=(150, 150, 3)),
-  tf.keras.layers.MaxPooling2D(2,2),
-  tf.keras.layers.Conv2D(32, (3,3), activation='relu'),
-  tf.keras.layers.MaxPooling2D(2,2),
-  tf.keras.layers.Conv2D(64, (3,3), activation='relu'),
-  tf.keras.layers.MaxPooling2D(2,2),
-  tf.keras.layers.Flatten(),
-  tf.keras.layers.Dense(512, activation='relu'),
-  tf.keras.layers.Dense(1, activation='sigmoid')
-])
+i = 0
+for filename in trainDogFileNames[:16]:
+  sp = plt.subplot(4, 4, i + 1)
+  sp.axis('Off')
+  image = imread(trainDogDir +'/'+ filename)
+  plt.imshow(image)
+  i = i + 1
 
-model.summary()
-
-
-step7 모델 컴파일하기
-모델 컴파일 단계에서는 compile() 메서드를 이용해서 손실 함수 (loss function)와 옵티마이저 (optimizer)를 지정
-출력층의 활성화함수로 ‘sigmoid’를 사용했고, 이는 0과 1 두 가지로 분류되는 ‘binary’ 분류 문제에 적합
+# 이미지 확인
+plt.show()
 
 
-from tensorflow.keras.optimizers import RMSprop
+Step6. 모델 생성하기
+# 모델 생성
+import sys
+import matplotlib.pyplot as plt
+# import tensorflow as tf
+# from tensorflow.keras.optimizers import RMSprop
 
-model.compile(optimizer=RMSprop(lr=0.001),
-            loss='binary_crossentropy',
-            metrics = ['accuracy'])
-
-
-
-step8 이미지 데이터 전처리하기
-훈련을 진행하기 전, tf.keras.preprocessing.image 모듈의 ImageDataGenerator 클래스를 이용해서 데이터 전처리를 진행
-첫번째 인자로 이미지들이 위치한 경로를 입력하고, batch_size, class_mode를 지정합니다. target_size에 맞춰서 이미지의 크기가 조절됩니다.
-
+from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv2D
+from tensorflow.keras.layers import MaxPooling2D
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.layers import Flatten
+from tensorflow.keras.optimizers import SGD
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
-train_datagen = ImageDataGenerator( rescale = 1.0/255. )
-test_datagen  = ImageDataGenerator( rescale = 1.0/255. )
+# CNN 모델 정의
+model = Sequential()
+model.add(Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same', input_shape=(200, 200, 3)))
+model.add(MaxPooling2D((2, 2)))
+model.add(Flatten())
+model.add(Dense(128, activation='relu', kernel_initializer='he_uniform'))
+model.add(Dense(1, activation='sigmoid'))
 
-train_generator = train_datagen.flow_from_directory(train_dir,
-                                                  batch_size=20,
-                                                  class_mode='binary',
-                                                  target_size=(150, 150))
-validation_generator =  test_datagen.flow_from_directory(validation_dir,
-                                                       batch_size=20,
-                                                       class_mode  = 'binary',
-                                                       target_size = (150, 150))
-
-step9 모델 훈련하기
-훈련과 테스트를 위한 데이터셋인 train_generator, validation_generator를 입력합니다.
-epochs는 데이터셋을 한 번 훈련하는 과정을 의미합니다.
-steps_per_epoch는 한 번의 에포크 (epoch)에서 훈련에 사용할 배치 (batch)의 개수를 지정합니다.
-validation_steps는 한 번의 에포크가 끝날 때, 테스트에 사용되는 배치 (batch)의 개수를 지정
-(시간관계상 steps_per_epoch=10, epochs=10 수정)
-
-history = model.fit(train_generator,
-                    validation_data=validation_generator,
-                    steps_per_epoch=100,
-                    epochs=100,
-                    validation_steps=50,
-                    verbose=2)
+# 모델 컴파일
+opt = SGD(learning_rate=0.001, momentum=0.9)
+model.compile(optimizer=opt, loss='binary_crossentropy', metrics=['accuracy'])
 
 
-step10 정확도와 손실 확인하기
-훈련 과정에서 에포크에 따른 정확도와 손실을 출력
-20회 에포크에서 훈련 정확도는 1.0에 근접한 반면, 테스트의 정확도는 100회 훈련이 끝나도 0.7 수준에 머물고 있습니다.
-이러한 현상을 과적합 (Overfitting)이라고 함
+Step7. 모델 평가하기
 
-import matplotlib.pyplot as plt
+epochs=10
 
-acc = history.history['accuracy']
-val_acc = history.history['val_accuracy']
+# create data generator
+datagen = ImageDataGenerator(rescale=1.0/255.0)
+
+# prepare iterators
+trainDo = datagen.flow_from_directory(trainDir, class_mode='binary', batch_size=64, target_size=(200, 200))
+testDo = datagen.flow_from_directory(validDir, class_mode='binary', batch_size=64, target_size=(200, 200))
+
+# fit model
+history = model.fit(trainDo, steps_per_epoch=epochs, epochs=epochs,	validation_data=testDo, validation_steps=epochs,  verbose=2)
+
+
+Setp8. 성능평가
+
 loss = history.history['loss']
-val_loss = history.history['val_loss']
+valLoss = history.history['val_loss']
+accuracy = history.history['accuracy']
+valAccuracy = history.history['val_accuracy']
 
-epochs = range(len(acc))
+_, acc = model.evaluate(testDo, steps=10, verbose=2)
+print('> %.3f' % (acc * 100.0))
 
-plt.plot(epochs, acc, 'bo', label='Training accuracy')
-plt.plot(epochs, val_acc, 'b', label='Validation accuracy')
+plt.figure(figsize=(8,8))
+plt.subplot(1, 2, 1)
+plt.plot(range(epochs), accuracy, label = 'Training accuracy')
+plt.plot(range(epochs), valAccuracy, label = 'Validation accuracy')
+plt.legend(loc='lower right')
 plt.title('Training and validation accuracy')
-plt.legend()
 
-plt.figure()
-
-plt.plot(epochs, loss, 'go', label='Training Loss')
-plt.plot(epochs, val_loss, 'g', label='Validation Loss')
+plt.subplot(1, 2, 2)
+plt.plot(range(epochs), loss, label = 'Training Loss')
+plt.plot(range(epochs), valLoss, label = 'Validation Loss')
+plt.legend(loc='upper right')
 plt.title('Training and validation loss')
-plt.legend()
-
 plt.show()
 
+# save model
+model.save('finalModel.h5')
 
+# model summary
+model.summary()
 
-
-step11 테스트 이미지 분류하기
-하나 이상의 이미지를 업로드하고, 훈련된 모델을 사용해서 개/고양이 분류 결과를 출력합
-
+Step8. 최종 적용
 
 import numpy as np
 from google.colab import files
 from keras.preprocessing import image
 
-uploaded=files.upload()
+upLoaded=files.upload()
 
-for fn in uploaded.keys():
+for dataset in upLoaded.keys():
+  path='/content/' + dataset
+  imageFile=image.load_img(path, target_size=(200, 200))
 
-  path='/content/' + fn
-  img=image.load_img(path, target_size=(150, 150))
+  index=image.img_to_array(imageFile)
+  index=np.expand_dims(index, axis=0)
+  images = np.vstack([index])
+  result = model.predict(images, batch_size=20)
 
-  x=image.img_to_array(img)
-  x=np.expand_dims(x, axis=0)
-  images = np.vstack([x])
+  print('최종 결과값: ', result[0])
 
-  classes = model.predict(images, batch_size=10)
-
-  print(classes[0])
-
-  if classes[0]>0:
-    print(fn + " is a dog")
+  if result[0]>0:
+    print( dataset + " 는 강아지입니다. ")
   else:
-    print(fn + " is a cat")
-
-
-
-
+    print( dataset + " 는 고양이입니다. ")
 
 
