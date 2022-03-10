@@ -88,9 +88,6 @@ Step6. 모델 생성하기
 # 모델 생성
 import sys
 import matplotlib.pyplot as plt
-# import tensorflow as tf
-# from tensorflow.keras.optimizers import RMSprop
-
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D
@@ -129,7 +126,6 @@ history = model.fit(trainDo, steps_per_epoch=epochs, epochs=epochs,	validation_d
 
 
 Setp8. 성능평가
-
 loss = history.history['loss']
 valLoss = history.history['val_loss']
 accuracy = history.history['accuracy']
