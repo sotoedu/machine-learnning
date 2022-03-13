@@ -179,7 +179,7 @@ upLoaded=files.upload()
 
 for dataset in upLoaded.keys():
   path='/content/' + dataset
-  imageFile=image.load_img(path, target_size=(200, 200))
+  imageFile=image.load_img(path, target_size=(150, 150))
 
   index=image.img_to_array(imageFile)
   index=np.expand_dims(index, axis=0)
