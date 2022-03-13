@@ -1,18 +1,22 @@
 Colab에서 딥러닝 실행하기
+https://colab.research.google.com/
 
 CNN 모델을 이용한 고양이와 강아지 분류
 
 Step1. 프로젝트 경로 생성
-!mkdir workspace
-!cd workspace
-!pwd
+
+!rm -rf workspace/
+!mkdir workspace/
+!ls
 
 
 Step2. 이미지 다운로드 및 압축 풀기
+
 !wget --no-check-certificate https://storage.googleapis.com/mledu-datasets/cats_and_dogs_filtered.zip -O workspace/imageset.zip
 
 
 Step3.압축 파일 풀기
+
 import os
 import zipfile
 
@@ -27,11 +31,11 @@ zipRef.close()
 trainDir = os.path.join(baseDir, 'train')
 validDir = os.path.join(baseDir, 'validation')
 
-# 훈련용 고양이/개 이미지 경로
+# 훈련용 고양이/개 이미지 경로지정
 trainCatDir = os.path.join(trainDir, 'cats')
 trainDogDir = os.path.join(trainDir, 'dogs')
 
-# 테스트용 고양이/개 이미지 경로
+# 테스트용 고양이/개 이미지 경로지정
 validCatDir = os.path.join(validDir, 'cats')
 validDogDir = os.path.join(validDir, 'dogs')
 
@@ -41,7 +45,8 @@ print('검증용 고양이 이미지 수: ', len(os.listdir(validCatDir)))
 print('검증용 강아지 이미지 수: ', len(os.listdir(validDogDir)))
 
 
-Step4. 훈련 고양이 이미지 확인하기
+Step4. 훈련 고양이 이미지 확인
+
 import matplotlib.pyplot as plt
 from matplotlib.image import imread
 
@@ -50,8 +55,6 @@ trainCatFileNames = os.listdir( trainCatDir )
 
 fig = plt.gcf()
 fig.set_size_inches(4*3, 4*3)
-
-# print(trainCatFileNames[:5])
 
 i = 0
 for filename in trainCatFileNames[:16]:
@@ -65,7 +68,8 @@ for filename in trainCatFileNames[:16]:
 plt.show()
 
 
-Step5. 훈련 강아지 이미지 확인하기
+Step5. 훈련 강아지 이미지 확인
+
 fig = plt.gcf()
 fig.set_size_inches(4*3, 4*3)
 
@@ -85,53 +89,64 @@ plt.show()
 
 
 Step6. 모델 생성하기
+
 # 모델 생성
 import sys
 import matplotlib.pyplot as plt
+
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D
 from tensorflow.keras.layers import MaxPooling2D
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import Flatten
-from tensorflow.keras.optimizers import SGD
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+
+from tensorflow.keras.optimizers import SGD
+from tensorflow.keras.optimizers import RMSprop
+
 
 # CNN 모델 정의
 model = Sequential()
-model.add(Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same', input_shape=(200, 200, 3)))
+model.add(Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same', input_shape=(150, 150, 3)))
 model.add(MaxPooling2D((2, 2)))
 model.add(Flatten())
 model.add(Dense(128, activation='relu', kernel_initializer='he_uniform'))
 model.add(Dense(1, activation='sigmoid'))
 
 # 모델 컴파일
-opt = SGD(learning_rate=0.001, momentum=0.9)
-model.compile(optimizer=opt, loss='binary_crossentropy', metrics=['accuracy'])
+# 1) SGD
+#opt = SGD(learning_rate=0.001, momentum=0.9)
+#model.compile(optimizer=opt, loss='binary_crossentropy', metrics=['accuracy'])
+
+# 2) RMS
+model.compile(optimizer=RMSprop(learning_rate=0.001),loss='binary_crossentropy', metrics = ['accuracy'])
 
 
-Step7. 모델 평가하기
+
+Step7. 모델 학습
 
 epochs=10
+batchSize=10
 
 # create data generator
 datagen = ImageDataGenerator(rescale=1.0/255.0)
 
 # prepare iterators
-trainDo = datagen.flow_from_directory(trainDir, class_mode='binary', batch_size=64, target_size=(200, 200))
-testDo = datagen.flow_from_directory(validDir, class_mode='binary', batch_size=64, target_size=(200, 200))
+trainDo = datagen.flow_from_directory(trainDir, class_mode='binary', batch_size=batchSize, target_size=(150, 150))
+testDo = datagen.flow_from_directory(validDir, class_mode='binary', batch_size=batchSize, target_size=(150, 150))
 
 # fit model
-history = model.fit(trainDo, steps_per_epoch=epochs, epochs=epochs,	validation_data=testDo, validation_steps=epochs,  verbose=2)
-
+history = model.fit(trainDo, steps_per_epoch=epochs, epochs=epochs, validation_data=testDo, validation_steps=epochs,  verbose=1)
 
 Setp8. 성능평가
+
 loss = history.history['loss']
 valLoss = history.history['val_loss']
 accuracy = history.history['accuracy']
 valAccuracy = history.history['val_accuracy']
 
-_, acc = model.evaluate(testDo, steps=10, verbose=2)
+_, acc = model.evaluate(testDo, steps=epochs, verbose=2)
 print('> %.3f' % (acc * 100.0))
 
 plt.figure(figsize=(8,8))
@@ -154,7 +169,7 @@ model.save('finalModel.h5')
 # model summary
 model.summary()
 
-Step8. 최종 적용
+Step9. 최종 적용
 
 import numpy as np
 from google.colab import files
@@ -169,9 +184,9 @@ for dataset in upLoaded.keys():
   index=image.img_to_array(imageFile)
   index=np.expand_dims(index, axis=0)
   images = np.vstack([index])
-  result = model.predict(images, batch_size=20)
+  result = model.predict(images, batch_size=10)
 
-  print('최종 결과값: ', result[0])
+  #print('최종 결과값: ', result[0])
 
   if result[0]>0:
     print( dataset + " 는 강아지입니다. ")
