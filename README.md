@@ -39,12 +39,9 @@ https://www.youtube.com/watch?v=FD7bDsYQO08
 
 https://www.youtube.com/watch?v=9YixRpBZwRA
 
-
-
 https://colab.research.google.com/drive/1EwBV9XAmiXRFQ5WDa-k-sE4ZKRvDQU4j?usp=sharing
 
 
+CoLAB
+https://colab.research.google.com/
 
-
-License
-This repo is made freely available to academic and non-academic entities for non-commercial purposes such as academic research, teaching, scientific publications. Permission is granted to use the Program given that you agree to my license terms. Regarding the request for commercial use, please contact us via email to help you obtain the authorization letter.
