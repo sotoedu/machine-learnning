@@ -29,6 +29,7 @@ https://www.youtube.com/watch?v=sKDPunhmzkk
 
 ---------------------------
 dog-cat
+
 https://codetorial.net/tensorflow/classifying_the_cats_and_dogs.html
 
 AI-ART
@@ -43,5 +44,6 @@ https://colab.research.google.com/drive/1EwBV9XAmiXRFQ5WDa-k-sE4ZKRvDQU4j?usp=sh
 
 
 CoLAB
+
 https://colab.research.google.com/
 
