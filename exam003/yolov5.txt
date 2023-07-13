@@ -91,4 +91,4 @@ step9 확인하기
 동영상 업로드하기
 보기 > 목차 > 파일(폴더아이콘) > mp4 파일업로드
 
-!python detect.py --weights /content/yolov5/runs/train/results/weights/best.pt --img 416 --conf 0.5 --source ../gun.mp4
+!python detect.py --weights /content/yolov5/runs/train/results/weights/best.pt --img 416 --conf 0.5 --source ../test.mp4
