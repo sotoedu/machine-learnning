@@ -1,0 +1,17 @@
+
+$ cd data
+$ touch custom.yaml
+
+train: D:/workspace/python_project/yolov5/labelling/custom_dataset/train/
+val: D:/workspace/python_project/yolov5/labelling/custom_dataset/val/
+
+nc: 5
+names: ['closed_door', 'opened_door', 'bus', 'number', 'helmet']
+
+
+$ cd ..
+$ cd models
+$ nano yolov5s.yaml
+# Parameters
+nc: 5  # number of classes
+$ cd ..
