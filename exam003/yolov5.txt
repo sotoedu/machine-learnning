@@ -31,28 +31,34 @@ https://colab.research.google.com/?hl=ko
 
 코드
 step1
-!pip install roboflow
 
-from roboflow import Roboflow
-rf = Roboflow(api_key="9g4SY7obn2MBj5nd2jcp")
-project = rf.workspace("roboflow-58fyf").project("rock-paper-scissors-sxsw")
-dataset = project.version(12).download("yolov5")
+%cd /content
+!rm -rf workspace/
+!mkdir workspace/
+%cd  workspace/
+!mkdir dataset/
+%cd dataset/
+!ls -al
+
+!curl -L "https://universe.roboflow.com/ds/hgDfc7ICrJ?key=3fGbrmMNBI" > roboflow.zip; unzip roboflow.zip; rm roboflow.zip
+!ls -al
+
 
 step2
-%cd /content
+%cd /content/workspace
 !git clone https://github.com/ultralytics/yolov5.git
 
 step3
-%cd /content/yolov5/
+%cd /content/workspace/yolov5/
 !pip install -r requirements.txt
 
 step4
-%cat /content/dataset/data.yaml
+%cat /content/workspace/dataset/data.yaml
 
 step5 
 %cd /
 from glob import glob
-img_list = glob('/content/dataset/export/images/*.jpg')
+img_list = glob('/content/workspace/dataset/test/images/*.jpg')
 print(len(img_list))
 
 from sklearn.model_selection import train_test_split
@@ -60,35 +66,38 @@ train_img_list, val_img_list = train_test_split(img_list, test_size = 0.2, rando
 print(len(train_img_list), len(val_img_list))
 
 step6 
-with open('/content/dataset/train.txt', 'w') as f:
+with open('/content/workspace/dataset/train.txt', 'w') as f:
   f.write('\n'.join(train_img_list) + '\n')
 
-with open('/content/dataset/val.txt', 'w') as f:
-  f.write('\n'.join(valid_img_list) + '\n')
+with open('/content/workspace/dataset/val.txt', 'w') as f:
+  f.write('\n'.join(val_img_list) + '\n')
 
 step7
 import yaml
 
-with open('/content/dataset/data.yaml', 'r') as f:
+with open('/content/workspace/dataset/data.yaml', 'r') as f:
   data = yaml.safe_load(f)
 
 print(data)
 
-data['train'] = '/content/dataset/train.txt'
-data['val'] = '/content/dataset/val.txt'
+data['train'] = '/content/workspace/dataset/train.txt'
+data['val'] = '/content/workspace/dataset/val.txt'
 
-with open('/content/dataset/data.yaml', 'w') as f:
+with open('/content/workspace/dataset/data.yaml', 'w') as f:
   yaml.dump(data, f)
 
 print(data)
 
 step8 학습하기
-%cd /content/yolov5/
+%cd /content/workspace/yolov5/
 
-!python train.py --img 416 --batch 16 --epochs 50 --data /content/dataset/data.yaml --cfg ./models/yolov5s.yaml --weights yolov5s.pt --name results
+!python train.py --img 416 --batch 16 --epochs 50 --data /content/workspace/dataset/data.yaml --cfg ./models/yolov5s.yaml --weights yolov5s.pt --name results
 
 step9 확인하기
 동영상 업로드하기
 보기 > 목차 > 파일(폴더아이콘) > mp4 파일업로드
 
-!python detect.py --weights /content/yolov5/runs/train/results/weights/best.pt --img 416 --conf 0.5 --source ../test.mp4
+!python detect.py --weights /content/workspace/yolov5/runs/train/results/weights/best.pt --img 416 --conf 0.5 --source ../test.mp4
+
+
+!python detect.py --weights /content/workspace/yolov5/runs/train/results/weights/best.pt --img 416 --conf 0.5 --source https://www.youtube.com/watch?v=N-sYRbSa8Vw
